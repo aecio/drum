@@ -22,6 +22,7 @@ public class DrumIterator<Data extends KeyValueStorable> implements Iterator<Dat
 		this.mappedByteBuffer = fileChannel.map(MapMode.READ_ONLY, 0, fileChannel.size());
 	}
 
+	@Override
 	public boolean hasNext() {
 		if(mappedByteBuffer.position() < mappedByteBuffer.capacity()) {
 			System.err.println("hasNext=true");
@@ -32,6 +33,7 @@ public class DrumIterator<Data extends KeyValueStorable> implements Iterator<Dat
 		}
 	}
 
+	@Override
 	public Data next() {
 		Data instance;
 		try {
@@ -44,8 +46,14 @@ public class DrumIterator<Data extends KeyValueStorable> implements Iterator<Dat
 		return instance;
 	}
 
+	@Override
 	public void close() throws IOException {
 		randomAccessFile.close();
 	}
+	
+	@Override
+	public void remove() {
+        throw new UnsupportedOperationException("remove() is not supported yet.");
+    }
 
 }
