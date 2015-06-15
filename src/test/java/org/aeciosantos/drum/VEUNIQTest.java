@@ -13,53 +13,54 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.aeciosantos.drum.BucketIterator;
-import com.aeciosantos.drum.DiskRepositoryMerge;
+import com.aeciosantos.drum.VEUNIQ;
+import com.aeciosantos.drum.VEUNIQ.VEUNIQIterator;
 
-public class DRUMTest {
+public class VEUNIQTest {
 	
 	String fileName = "urls.db";
+	int numberOfBuckets = 3;
 
 	@Before
 	public void setUp() throws Exception {
-		File file = new File(fileName);
-		if(file.exists()) {
-			file.delete();
+		for (int i = 0; i < numberOfBuckets; i++) {
+			File file = new File(String.format("%s.%d", fileName, i));
+			if(file.exists()) {
+				file.delete();
+			}
 		}
 	}
 
 	@After
 	public void tearDown() throws Exception {
 	}
-	
-	
 
 	@Test
 	public void shouldMergeDuplicatedItems() throws IOException {
 		
-		DiskRepositoryMerge<MockData> drum = new DiskRepositoryMerge<MockData>(MockData.class, fileName);
+		VEUNIQ<MockData> veuniq = new VEUNIQ<MockData>(MockData.class, fileName, numberOfBuckets);
 		MockData url1 = new MockData("asdf", 1);
 		MockData url2 = new MockData("qwer", 1);
 		
-		System.out.println("inser1");
-		drum.insertOrMerge(url1);
-		drum.insertOrMerge(url1);
-		drum.insertOrMerge(url2);
+		System.err.println("---- insert1 ----");
+		veuniq.insertOrMerge(url1);
+		veuniq.insertOrMerge(url1);
+		veuniq.insertOrMerge(url2);
 		
-		System.out.println("sync");
-		drum.syncronize();
+		System.err.println("---- sync1 ----");
+		veuniq.syncronizeAll();
 		
-		System.out.println("insert2");
-		drum.insertOrMerge(url1);
-		drum.insertOrMerge(url2);
+		System.err.println("---- insert1 ----");
+		veuniq.insertOrMerge(url1);
+		veuniq.insertOrMerge(url2);
 		
-		System.out.println("sync2");
-		drum.syncronize();
+		System.err.println("---- sync2 ----");
+		veuniq.syncronizeAll();
 		
-		System.out.println("Asserting...");
+		System.err.println("---- Asserting... ----");
 		
 		int count = 0;
-		BucketIterator<MockData> iterator = drum.getIterator();
+		VEUNIQIterator<MockData> iterator = veuniq.getIterator();
 		Map<String, Integer> keyValues = new HashMap<String, Integer>();
 		while(iterator.hasNext()) {
 			MockData url = iterator.next();
@@ -74,7 +75,6 @@ public class DRUMTest {
 		
 		assertThat(keyValues.get("qwer"), is(notNullValue()));
 		assertThat(keyValues.get("qwer"), is(2));
-		
 	}
 
 }

@@ -8,27 +8,27 @@ import java.nio.channels.FileChannel;
 import java.nio.channels.FileChannel.MapMode;
 import java.util.Iterator;
 
-public class DrumIterator<Data extends KeyValueStorable> implements Iterator<Data>, Closeable {
+public class BucketIterator<Data extends KeyValueStorable> implements Iterator<Data>, Closeable {
 
 	private RandomAccessFile randomAccessFile;
 	private FileChannel fileChannel;
 	private MappedByteBuffer mappedByteBuffer;
 	private Class<Data> clazz;
+	private boolean reachedEof;
 
-	public DrumIterator(Class<Data> clazz, String fileName) throws IOException {
+	public BucketIterator(Class<Data> clazz, String fileName) throws IOException {
 		this.clazz = clazz;
 		this.randomAccessFile = new RandomAccessFile(fileName, "r");
 		this.fileChannel = randomAccessFile.getChannel();
 		this.mappedByteBuffer = fileChannel.map(MapMode.READ_ONLY, 0, fileChannel.size());
+		verifyEndOfFile();
 	}
 
 	@Override
 	public boolean hasNext() {
-		if(mappedByteBuffer.position() < mappedByteBuffer.capacity()) {
-			System.err.println("hasNext=true");
+		if(!reachedEof) {
 			return true;
 		} else {
-			System.err.println("hasNext=false");
 			return false;
 		}
 	}
@@ -42,18 +42,40 @@ public class DrumIterator<Data extends KeyValueStorable> implements Iterator<Dat
 			throw new IllegalStateException("Class "+clazz+" should have a public constructor without parameters!");
 		}
 		instance.readFrom(mappedByteBuffer);
-		System.err.println("readKey="+new String(instance.getKey()));
+		verifyEndOfFile();
 		return instance;
 	}
 
+	private void verifyEndOfFile() {
+		if(mappedByteBuffer.position() < mappedByteBuffer.capacity()) {
+			reachedEof = false;
+		} else {
+			reachedEof = true;
+			close();
+		}
+	}
+
 	@Override
-	public void close() throws IOException {
-		randomAccessFile.close();
+	public void close() {
+		try {
+			randomAccessFile.close();
+			fileChannel.close();
+		} catch (IOException e) {
+			System.err.println("Failed to close bucket file. " + e);
+		}
 	}
 	
 	@Override
 	public void remove() {
         throw new UnsupportedOperationException("remove() is not supported yet.");
     }
+	
+	@Override
+	protected void finalize() throws Throwable {
+		if(!reachedEof) {
+			close();
+		}
+		super.finalize();
+	}
 
 }

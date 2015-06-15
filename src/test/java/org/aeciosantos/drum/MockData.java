@@ -28,9 +28,10 @@ public class MockData extends KeyValueStorable {
 	@Override
 	public MockData merge(KeyValueStorable other) {
 		MockData obj = (MockData) other;
-		System.err.println("merging("+this.key+", "+obj.key+")");
 		assert this.key.equals(obj.key);
-		return new MockData(this.key, this.count + obj.count);
+		MockData merged = new MockData(this.key, this.count + obj.count);
+		System.err.println("merging("+this.key+", "+obj.key+") count="+merged.count);
+		return merged;
 	}
 	
 	@Override
@@ -40,6 +41,7 @@ public class MockData extends KeyValueStorable {
 		buf.get(strBuf);
 		this.key = new String(strBuf);
 		this.count = buf.getInt();
+		System.err.println("read: key="+key+" count="+count);
 	}
 	
 	@Override
@@ -47,7 +49,8 @@ public class MockData extends KeyValueStorable {
 		byte[] bytes = this.key.getBytes(UTF8);
 		buf.putInt(bytes.length);
 		buf.put(bytes);
-		buf.putInt(this.count);		
+		buf.putInt(this.count);
+		System.err.println("written: key="+key+" count="+count);
 	}
 	
 }

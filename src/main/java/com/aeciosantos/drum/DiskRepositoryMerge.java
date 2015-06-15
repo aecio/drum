@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class DRUM<Data extends KeyValueStorable> {
+public class DiskRepositoryMerge<Data extends KeyValueStorable> {
 	
 	private static final int MAX_ITEMS_IN_BUFFER = 1000;
 	
@@ -14,7 +14,7 @@ public class DRUM<Data extends KeyValueStorable> {
 	private Class<Data> clazz;
 	private String fileName;
 	
-	public DRUM(Class<Data> clazz, String fileName) throws IOException {
+	public DiskRepositoryMerge(Class<Data> clazz, String fileName) throws IOException {
 		this.clazz = clazz;
 		this.fileName = fileName;
 		checkClassIsInstantiable(clazz);
@@ -57,8 +57,8 @@ public class DRUM<Data extends KeyValueStorable> {
 		buffer = new ArrayList<Data>(MAX_ITEMS_IN_BUFFER);
 	}
 
-	public DrumIterator<Data> getIterator() throws IOException {
-		return new DrumIterator<Data>(clazz, this.fileName);
+	public BucketIterator<Data> getIterator() throws IOException {
+		return new BucketIterator<Data>(clazz, this.fileName);
 	}
 
 }
